@@ -1,0 +1,30 @@
+# Python Virtual Environments
+.venv/
+venv/
+env/
+
+# Python Bytecode dan Cache
+__pycache__/
+pycache/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE & Editor specific files
+.idea/
+.vscode/
+*.swp
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Sensitive Files (secrets, API keys)
+.env
+
+# Model checkpoints (large binary files)
+best.pt
+
+# Temporary files
+*.pdf.tmp
+*.png.tmp
