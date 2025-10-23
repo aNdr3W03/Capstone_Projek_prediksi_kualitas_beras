@@ -4,6 +4,4 @@ Pillow>=10.0.0
 fpdf2>=2.7.0
 gunicorn>=21.0.0
 requests>=2.30.0 
-
---extra-index-url https://pypi.org/simple
-opencv-python-headless>=4.10.0
+opencv-python
