@@ -22,7 +22,6 @@ certifi==2025.8.3
 cffi==1.17.1
 charset-normalizer==3.4.1
 click==8.1.7
-cockpit @ file:///builddir/build/BUILD/cockpit-347-build/cockpit-347/tmp/wheel/cockpit-347-py3-none-any.whl#sha256=8816ee14baaafcd61279d6180ad0c57fd497ac6ad5d73db9bc0de1fa66d9e21d
 comm==0.2.3
 conda==24.11.3
 conda-libmamba-solver==24.9.0
