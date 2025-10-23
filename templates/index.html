@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Deteksi Kualitas Beras - Flask</title>
+<style>
+    /* ===== PALET WARNA (SIMPEL & BERSIH) ===== */
+    :root {
+        --bg-light: #f8f9fa;
+        --bg-white: #ffffff;
+        --text-dark: #212529;
+        --text-muted: #6c757d;
+        --accent-green: #198754;
+        --accent-blue: #0d6efd;
+        --border-color: #dee2e6;
+    }
+
+    * {
+        box-sizing: border-box;
+        scroll-behavior: smooth;
+    }
+
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-light);
+        color: var(--text-dark);
+        line-height: 1.6;
+    }
+
+    /* ===== NAVBAR ===== */
+/* === NAVBAR UTAMA === */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 60px;
+  background: #ffffff;
+  border-bottom: 2px solid #e5f5e0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+/* === LOGO DAN NAMA === */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #2e7d32;
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 0.5px;
+}
+
+.navbar-brand .logo {
+  height: 60px;        /* ubah di sini kalau terlalu kecil/besar */
+  width: auto;         /* biarkan proporsional */
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover .logo {
+  transform: rotate(-5deg) scale(1.05);
+}
+
+/* === LINK MENU === */
+.navbar-links {
+  display: flex;
+  gap: 22px;
+}
+
+.navbar-link {
+  text-decoration: none;
+  color: #2e7d32;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.25s ease-in-out;
+}
+
+.navbar-link:hover {
+  background-color: #e8f5e9;
+  color: #1b5e20;
+}
+
+/* === EFEK SCROLL === */
+.navbar.scrolled {
+  background-color: #f9fff9;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+/* === RESPONSIF === */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 20px;
+  }
+
+  .navbar-brand .logo {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+
+    /* ===== HERO/JUDUL ===== */
+    .hero-simple {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    .hero-simple h1 {
+        font-size: 2.5rem;
+        color: var(--accent-green);
+        margin-bottom: 0.5rem;
+    }
+    .hero-simple p {
+        font-size: 1.15rem;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* ===== KONTEN UTAMA ===== */
+    .container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 0 20px;
+    }
+
+    /* Kartu (Card) */
+    .card {
+        background: var(--bg-white);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+    }
+    .card h2 {
+        margin-top: 0;
+        color: var(--accent-green);
+        border-bottom: 2px solid var(--bg-light);
+        padding-bottom: 10px;
+    }
+    .card h3 {
+        margin-top: 0;
+        color: var(--text-dark);
+    }
+
+    /* Layout Grid untuk Input */
+    .input-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    /* Tombol */
+    button, .file-label {
+        border: none;
+        border-radius: 8px;
+        padding: 10px 18px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    button {
+        background-color: var(--accent-green);
+        color: var(--bg-white);
+    }
+    button:hover {
+        background-color: #146c43;
+    }
+    button:disabled {
+        background-color: #aaa;
+        cursor: not-allowed;
+    }
+
+    .file-label {
+        background: var(--accent-blue);
+        color: var(--bg-white);
+    }
+    .file-label:hover {
+        background: #0b5ed7;
+    }
+    
+    input[type="file"] { display: none; }
+    #fileName { font-style: italic; color: var(--text-muted); margin-left: 10px; }
+    #status { margin-top: 15px; font-weight: bold; }
+
+    /* Drag-and-Drop Area */
+    #uploaderCard {
+        transition: all 0.3s ease;
+        border: 2px dashed var(--border-color);
+    }
+    #uploaderCard.drag-over {
+        border-color: var(--accent-blue);
+        background-color: #fafdff;
+    }
+
+    /* Panduan */
+    .guide-card ul {
+        list-style: '✓';
+        padding-left: 20px;
+        color: var(--text-muted);
+    }
+    .guide-card li {
+        padding-left: 10px;
+        margin-bottom: 8px;
+    }
+
+    /* Galeri Contoh */
+    .example-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+    }
+    .example-image {
+        width: 100%;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 2px solid var(--border-color);
+        transition: all 0.3s ease;
+    }
+    .example-image:hover {
+        transform: scale(1.05);
+        border-color: var(--accent-green);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+/* === CSS BARU: Bagian Berita (Auto Scroll Looping) === */
+.news-section {
+    text-align: left;
+    padding: 0;
+}
+.news-section h2 {
+    font-size: 2rem;
+    color: var(--accent-green);
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+/* 1. Ini adalah "Jendela" yang memotong tampilan */
+.news-grid-container {
+    overflow: hidden; /* Sembunyikan konten yang keluar */
+    width: 100%;
+    /* (Opsional) Tambahkan efek fade di tepi */
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+/* 2. Ini adalah kontainer panjang yang bergerak */
+.news-grid {
+    display: flex;
+    width: max-content;
+    /* Durasi lebih lama agar lebih halus */
+    animation: autoScrollLeft 30s linear infinite; 
+}
+
+/* Animasi Keyframes BARU untuk bergerak ke KIRI secara mulus */
+@keyframes autoScrollLeft {
+    0% {
+        transform: translateX(0%); /* Mulai dari posisi normal */
+    }
+    100% {
+        /* Geser ke kiri sejauh LEBAR SATU GRUP KARTU */
+        /* Kita punya 5 kartu @320px + 5 margin @24px = 1720px */
+        /* Menggunakan % lebih fleksibel jika jumlah kartu berubah */
+        transform: translateX(-50%); 
+    }
+}
+
+/* 5. Styling kartu berita (tetap sama, hanya lebar & gap penting) */
+.news-card {
+    width: 320px; /* Lebar tetap kartu */
+    flex-shrink: 0;
+    margin-right: 24px; /* Ganti 'gap' menjadi margin kanan */
+    background: var(--bg-white);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+    overflow: hidden;
+    text-align: left;
+    text-decoration: none;
+    color: var(--text-dark);
+    transition: all 0.3s ease;
+}
+    .news-card.fade-in { /* Pastikan animasi fade-in tetap ada */
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s ease-out;
+    }
+    .news-card.fade-in.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .news-card:hover {
+        transform: translateY(-5px) scale(1.03); /* Ubah efek hover agar lebih 3D */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .news-card img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+    }
+
+    .news-content {
+        padding: 20px;
+    }
+
+    .news-content h3 {
+        margin: 0 0 10px 0;
+        color: var(--accent-green);
+        /* (Opsional) Potong teks jika terlalu panjang */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .news-content p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+    /* === AKHIR CSS BARU === */
+
+
+    
+    /* === HASIL DETEKSI === */
+    #resultsContainer {
+        display: none;
+        margin-top: 30px;
+    }
+    .results-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+    #imageContainer {
+        position: relative;
+        width: 100%;
+        line-height: 0;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+    #previewImage, #canvas {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    #canvas { z-index: 10; }
+
+    #summary-list {
+        list-style: none;
+        padding: 0;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+    #summary-list li {
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    .summary-good { background-color: #e6f7ec; color: #28a745; }
+    .summary-medium { background-color: #fff8e1; color: #ffc107; }
+    .summary-bad { background-color: #fdecea; color: #dc3545; }
+    .summary-other { background-color: #e9ecef; color: var(--text-dark); }
+    
+    #grade-display {
+        font-size: 1.4rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
+        padding: 15px;
+        border-radius: 10px;
+    }
+    .grade-a { background-color: #e6f7ec; color: #28a745; }
+    .grade-b { background-color: #fff8e1; color: #ffc107; }
+    .grade-c { background-color: #fdecea; color: #dc3545; }
+    .grade-none { display: none; }
+
+    /* === FOOTER === */
+    .footer {
+        width: 100%;
+        padding: 30px 0;
+        text-align: center;
+        background-color: var(--bg-white);
+        color: var(--text-muted);
+        border-top: 1px solid var(--border-color);
+        margin-top: 60px;
+    }
+    .footer p { margin: 0; line-height: 1.6; }
+    .footer strong { color: var(--accent-green); }
+
+    /* === MODAL WEBCAM === */
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.7); display: none;
+        justify-content: center; align-items: center; z-index: 1000;
+    }
+    .modal-content {
+        background: var(--bg-white); color: var(--text-dark);
+        padding: 20px; border-radius: 12px;
+        width: 90%; max-width: 640px; text-align: center;
+    }
+    #webcam-video { width: 100%; height: auto; border-radius: 8px; background: #eee; margin-bottom: 15px; }
+    .button-group { display: flex; gap: 10px; margin-top: 10px; }
+    .webcam-button.capture { background-color: var(--accent-green); color: white; }
+    .webcam-button.close { background-color: #dc3545; color: white; }
+
+    /* === RESPONSIVE === */
+/* Tambahkan ke bagian CSS (mis. akhir <style>) untuk perbaikan responsif tambahan */
+@media (max-width: 768px) {
+    /* Paksa single-column untuk semua area utama */
+    html, body {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .navbar-brand .logo {
+    width: 32px;
+    height: 32px;
+    }
+    /* Kontainer utama agar penuh dan nyaman di HP */
+    .container {
+        max-width: 100%;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    /* Stack semua grid jadi satu kolom */
+    .input-grid,
+    .results-grid {
+        display: block;
+        grid-template-columns: none !important;
+        gap: 16px;
+    }
+
+    /* Kolom input/kanan jadi full width dan stack */
+    .input-column-left,
+    .input-column-right,
+    .left-column,
+    .right-column,
+    .sidebar {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+        margin: 0 0 12px 0;
+        box-sizing: border-box;
+    }
+
+    /* Kartu jadi lebar penuh */
+    .card, .result-card {
+        width: 100% !important;
+        padding: 18px;
+        margin-bottom: 12px;
+    }
+
+    /* Tombol & label file full-width, mudah disentuh */
+    .button-group { flex-direction: column; gap: 10px; }
+    .button-group button, .file-label {
+        width: 100% !important;
+        display: block !important;
+        padding: 12px;
+        font-size: 1rem;
+        box-sizing: border-box;
+    }
+
+    /* Uploader & preview */
+    #uploaderCard { padding: 14px; }
+    #imageContainer {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 180px;
+        position: relative;
+    }
+    #previewImage {
+        position: relative !important;
+        width: 100% !important;
+        height: auto !important;
+        display: block !important;
+    }
+    /* Canvas overlay mengikuti ukuran kontainer */
+    #canvas {
+        position: absolute !important;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        height: 100% !important;
+        display: block;
+    }
+
+    /* Hasil deteksi: chart full width */
+    #qualityChart {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        margin: 12px 0;
+    }
+
+    /* Galeri contoh jadi horizontal scroller sehingga tidak memecah layout */
+    .example-grid {
+        display: flex !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 10px;
+        padding-bottom: 8px;
+    }
+    .example-image {
+        flex: 0 0 110px;
+        width: 110px;
+        height: 110px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    /* Berita: matikan animasi & jadikan scrollable horizontal */
+    .news-grid-container { overflow: hidden; }
+    .news-grid {
+        animation: none !important;
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+    .news-card { flex: 0 0 260px; width: 260px; margin-right: 12px; }
+
+    /* Teks, status, filename agar tidak overflow */
+    #fileName, #status, .file-label { font-size: 0.95rem; word-break: break-word; }
+
+    /* Loading overlay tetap center */
+    .loading-overlay { align-items: center; justify-content: center; }
+
+    /* Sedikit spasi bawah footer */
+    .footer { padding-bottom: 24px; }
+}
+/* === CSS BARU: Kotak Saran === */
+.advice-box {
+    margin-top: 20px; /* Jarak dari grade */
+    padding: 15px;
+    border-radius: 8px;
+    background-color: var(--bg-light); /* Latar abu-abu muda */
+    border-left: 5px solid var(--accent-blue); /* Aksen garis biru di kiri */
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    display: none; /* Sembunyikan secara default */
+}
+.advice-box p { /* Styling paragraf di dalam saran */
+    margin: 0 0 10px 0;
+}
+.advice-box p:last-child {
+    margin-bottom: 0;
+}
+.advice-box strong { /* Teks bold di saran */
+    color: var(--text-dark);
+}
+
+.container-responsif {
+  display: flex; /* Aktifkan Flexbox */
+  flex-wrap: wrap; /* Izinkan kolom turun jika tidak muat */
+  gap: 20px; /* Jarak antar kolom */
+}
+
+.kolom {
+  flex: 1; /* Masing-masing kolom mencoba mengambil ruang yang sama */
+  min-width: 250px; /* Lebar minimum sebelum kolom turun */
+  background-color: #eee; /* Hanya untuk contoh */
+  padding: 15px;
+  border-radius: 8px;
+}
+
+/* === CSS BARU: Loading Overlay (DIPERBAIKI) === */
+.loading-overlay {
+    position: fixed; /* <= UBAH INI dari absolute ke fixed */
+    top: 0;
+    left: 0;
+    width: 100%;     /* Lebar penuh layar */
+    height: 100%;    /* Tinggi penuh layar */
+    background-color: rgba(255, 255, 255, 0.85); /* Latar sedikit lebih pekat */
+    display: none;   /* Sembunyi secara default */
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 1000;   /* Pastikan di atas segalanya */
+    /* Hapus border-radius karena sekarang full screen */
+}
+
+/* Spinner (tidak berubah) */
+.spinner {
+    border: 5px solid var(--bg-light);
+    border-top: 5px solid var(--accent-green);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+.loading-overlay p {
+    color: var(--text-dark);
+    font-weight: 500;
+    font-size: 1.1rem; /* Sedikit perbesar teks */
+}
+
+/* Animasi putar (tidak berubah) */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.chart-wrapper { width: 100%; display: flex; justify-content: center; margin: 0 auto 20px; }
+#qualityChart { width: 100% !important; max-width: 480px; height: auto !important; display: block; }
+
+
+</style>
+</head>
+
+<body>
+    
+            <nav class="navbar">
+            <div class="navbar-brand">
+                <img src="{{ url_for('static', filename='assets/image_logo.png') }}" alt="RiceVision Logo" class="logo">
+                <span>RiceVision</span>
+            </div>
+            <div class="navbar-links">
+                <a href="/" class="navbar-link">Beranda</a>
+                <a href="{{ url_for('about') }}" class="navbar-link">Tentang Proyek</a>
+            </div>
+            </nav>
+
+    <section class="hero-simple">
+        <h1>Kenali Kualitas Beras Anda dengan RiceVision</h1>
+        <p>Dengan bantuan kecerdasan buatan, kami bantu Anda menilai kualitas beras secara cepat, akurat, dan mudah. 
+        Cukup unggah gambar, biarkan sistem kami bekerja — hasilnya langsung muncul dalam hitungan detik!</p>
+    </section>
+
+    <section class="container">
+        <div class="news-section">
+            <h2>Wawasan & Berita Pertanian</h2>
+            <div class="news-grid-container">
+                
+                <div class="news-grid"> 
+                    <a href="https://nasional.tvrinews.com/berita/t9f3whh-mentan-minta-maaf-soal-kegaduhan-beras-oplosan" target="_blank" class="news-card fade-in">
+                        <img src="{{ url_for('static', filename='assets/image_men.png') }}" alt="berita1">
+                        <div class="news-content">
+                            <h3>Mentan minta maaf soal kegaduhan beras oplosan</h3>
+                            <p>Menteri Pertanian (Mentan) Amran Sulaiman meminta maaf atas kegaduhan yang terjadi terkait isu beras oplosan. Menurutnya, yang sebenarnya terjadi bukanlah pengoplosan, melainkan pelanggaran terhadap mutu beras.</p>
+                        </div>
+                    </a>
+                    <a href="https://www.metrotvnews.com/read/bmRCEB48-polri-tetapkan-28-tersangka-kasus-beras-oplosan" target="_blank" class="news-card fade-in">
+                        <img src="{{ url_for('static', filename='assets/image_pol.png') }}" alt="berita2">
+                        <div class="news-content">
+                            <h3>Polri Tetapkan 28 Tersangka Kasus Beras Oplosan</h3>
+                            <p>Jakarta: Polri menetapkan 28 tersangka kasus beras premium oplosan. Langkah ini diambil usai kepolisian melakukan gelar perkara terhadap 25 kasus yang ditangani.</p>
+                        </div>
+                    </a>
+                    <a href="https://news.detik.com/berita/d-8126201/pemprov-dki-akui-harga-beras-premium-naik-imbas-kasus-beras-oplosan" target="_blank" class="news-card fade-in" aria-hidden="true">
+                        <img src="{{ url_for('static', filename='assets/image.png') }}" alt="berita1">
+                        <div class="news-content">
+                            <h3>Pemprov DKI Akui Harga Beras Premium Naik Imbas Kasus Beras Oplosan.</h3>
+                            <p>Jakarta - Pemerintah Provinsi (Pemprov) DKI Jakarta mengakui harga beras premium mengalami kenaikan dalam beberapa pekan terakhir. Kepala Dinas Ketahanan Pangan, Kelautan, dan Pertanian (KPKP) DKI, Hasudungan Sidabalok, menyebut salah satu penyebabnya kasus beras oplosan yang sempat marak beberapa waktu lalu.</p>
+                        </div>
+                    </a>
+                     <a href="https://www.detik.com/bali/hukum-dan-kriminal/d-8152535/skandal-beras-oplosan-dan-berkutu-di-kupang-dua-orang-jadi-tersangka" target="_blank" class="news-card fade-in" aria-hidden="true">
+                        <img src="{{ url_for('static', filename='assets/image_skan.png') }}" alt="berita2">
+                        <div class="news-content">
+                            <h3>Skandal Beras Oplosan dan Berkutu di Kupang, Dua Orang Jadi Tersangka.</h3>
+                            <p>Kupang - Polda Nusa Tenggara Timur (NTT) menetapkan dua orang tersangka dalam kasus penjualan beras oplosan dan beras berkutu di Kota Kupang. Kedua tersangka masing-masing berinisial M (36) dan RA (45).</p>
+                        </div>
+                    </a>
+                    </div> </div> </div>
+    </section>
+
+    <main class="container fade-in">
+        <div class="input-grid">
+                <div class="card guide-card">
+                    <h2>Panduan Pengambilan Foto</h2>
+                    <ul>
+                        <li>Gunakan pencahayaan cukup & hindari bayangan.</li>
+                        <li>Ambil dari atas agar butiran beras tampak jelas.</li>
+                        <li>Gunakan latar belakang polos untuk hasil optimal.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="input-column-right">
+                <div class="card" id="example-gallery">
+                    <h2>Coba dengan Gambar Contoh</h2>
+                    <p>Klik salah satu gambar di bawah ini untuk langsung mencobanya.</p>
+                    <div class="example-grid">
+                        <img src="{{ url_for('static', filename='assets/20251008_105848_png.rf.99838da2deb2006ce326ac6886512d5a.jpg') }}" alt="Contoh 1" class="example-image">
+                        <img src="{{ url_for('static', filename='assets/IMG_20251013_214741_jpg.rf.08e867c79a18004e93cb33d96d4c8165.jpg') }}" alt="Contoh 2" class="example-image">
+                        <img src="{{ url_for('static', filename='assets/IMG_20251014_221435_jpg.rf.541969cd298c9c699f1a3733fb056f62.jpg') }}" alt="Contoh 3" class="example-image">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <div class="input-column-left">
+                <div class="card" id="uploaderCard"> 
+                    <h2>Unggah Foto Beras</h2>
+                    <p>Klik tombol atau seret (drag-and-drop) file gambar Anda ke area ini.</p>
+                    <label for="imageInput" class="file-label">Pilih Gambar</label>
+                    <input type="file" id="imageInput" accept="image/*">
+                    <span id="fileName">Belum ada file dipilih</span>
+                    
+                    <div class="button-group">
+                        <button id="predictButton" disabled>Deteksi Gambar</button>
+                        <button id="open-webcam-button">Gunakan Kamera</button>
+                        <button id="clear-button" class="clear-button" style="display: none;">Hapus Hasil</button> 
+                        </div>
+                    
+                    <div id="status"></div>
+                </div>
+
+
+        <div class="card" id="resultsContainer">
+            <h2>Hasil Deteksi</h2>
+            <div id="loading-overlay" class="loading-overlay">
+                <div class="spinner"></div>
+                <p>Sedang Menganalisis...</p>
+            </div>
+            <div class="results-grid">
+                    <div id="image-column">
+                    <div id="imageContainer">
+                        <img id="previewImage" src="">
+                        <canvas id="canvas"></canvas>
+                    </div>
+                    <div class="button-group" style="margin-top: 15px;">
+                    <button id="download-button" disabled>Unduh Gambar Hasil</button>
+                    <button id="download-pdf-button" disabled>Unduh Laporan PDF</button>
+                    </div>
+                    </div>
+        <div id="summary-column">
+           <div class="chart-wrapper">
+                <canvas id="qualityChart"></canvas>
+           </div>
+           <div id="grade-display" class="grade-none"></div>
+           <div id="advice-display" class="advice-box"></div>
+           <ul id="summary-list"></ul>
+                </div>
+            </div>
+        </div>
+            <div id="webcam-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Aktifkan Kamera Anda</h2>
+            <p>Posisikan beras di depan kamera dan klik "Ambil Foto".</p>
+            <video id="webcam-video" autoplay playsinline></video>
+            <div class="modal-buttons">
+                <button id="capture-button" class="webcam-button capture">Ambil Foto</button>
+                <button id="close-modal-button" class="webcam-button close">Tutup</button>
+            </div>
+        </div>
+    </div>
+       </div>
+    </main>
+
+    <footer class="footer">
+        <p>
+            Dibuat oleh <strong>Rizal Mahardika Putra & Bismi Padia</strong>
+            <br>
+            Capstone Project - Dicoding Bootcamp
+        </p>
+    </footer>
+    
+
+
+<script>
+    let lastGrade = ""; // <-- VARIABEL BARU
+    let lastAdvice = ""; // <-- VARIABEL BARU
+    let myPieChart = null; // Untuk menyimpan instance chart
+    let currentImageFile;
+    let lastDetectionResults = null; // <-- VARIABEL BARU DITAMBAHKAN DI SINI
+
+    // === Variabel Elemen DOM ===
+    const uploaderCard = document.getElementById('uploaderCard');
+    const imageInput = document.getElementById('imageInput');
+    const predictButton = document.getElementById('predictButton');
+    const previewImage = document.getElementById('previewImage');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const statusDiv = document.getElementById('status');
+    const fileNameSpan = document.getElementById('fileName');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const summaryList = document.getElementById('summary-list');
+    const gradeDisplay = document.getElementById('grade-display');
+    const downloadButton = document.getElementById('download-button'); // Pastikan ID ini ada di HTML Anda
+    const openWebcamButton = document.getElementById('open-webcam-button');
+    const closeModalButton = document.getElementById('close-modal-button');
+    const captureButton = document.getElementById('capture-button');
+    const webcamModal = document.getElementById('webcam-modal');
+    const videoElement = document.getElementById('webcam-video');
+    const adviceDisplay = document.getElementById('advice-display'); // <-- VARIABEL BARU
+    const clearButton = document.getElementById('clear-button'); // <-- VARIABEL BARU
+    const loadingOverlay = document.getElementById('loading-overlay'); // <-- VARIABEL BARU
+    const downloadPdfButton = document.getElementById('download-pdf-button'); // <-- VARIABEL BARU
+    let currentStream;
+
+        window.addEventListener("scroll", function() {
+    const navbar = document.querySelector(".navbar");
+    if (window.scrollY > 30) {
+        navbar.classList.add("scrolled");
+    } else {
+        navbar.classList.remove("scrolled");
+    }
+    });
+
+    // === Logika Animasi Fade-in (Tidak Berubah) ===
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('show');
+        });
+    }, { threshold: 0.15 });
+        document.addEventListener("DOMContentLoaded", () => {
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('show'); });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+        loadHistory();
+    });
+// === Fungsi processFile (DIPERBAIKI) ===
+function processFile(file) {
+    if (file && file.type.startsWith('image/')) {
+        previewImage.src = URL.createObjectURL(file);
+        currentImageFile = file;
+        fileNameSpan.textContent = file.name;
+        resultsContainer.style.display = 'none';
+        adviceDisplay.style.display = 'none';
+        gradeDisplay.className = 'grade-none';
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        downloadButton.disabled = true;
+        downloadPdfButton.disabled = true;
+        statusDiv.innerHTML = "";
+        clearButton.style.display = 'none';
+
+        if (myPieChart) myPieChart.destroy();
+        document.getElementById('qualityChart').style.display = 'none';
+
+        // Tunggu gambar preview dimuat sebelum mengaktifkan tombol Deteksi
+        previewImage.onload = () => {
+            // Pastikan kontainer dan canvas menyesuaikan ukuran tampilan sekarang
+            const displayWidth = previewImage.clientWidth || previewImage.naturalWidth;
+            const aspectRatio = previewImage.naturalHeight && previewImage.naturalWidth
+                                ? (previewImage.naturalHeight / previewImage.naturalWidth)
+                                : 1;
+            const displayHeight = Math.round(displayWidth * aspectRatio);
+
+            // set ukuran visual untuk canvas (piksel)
+            canvas.width = displayWidth;
+            canvas.height = displayHeight;
+            canvas.style.width = '100%';
+            canvas.style.height = 'auto';
+            document.getElementById('imageContainer').style.height = `${displayHeight}px`;
+
+            predictButton.disabled = false;
+            statusDiv.innerHTML = "Gambar siap, klik 'Deteksi Gambar'.";
+        };
+    } else {
+        alert("Harap pilih file gambar (jpg, png, dll.)");
+    }
+}
+
+    // === Event Listener 'change' (Tidak Berubah) ===
+    imageInput.addEventListener('change', (e) => {
+        processFile(e.target.files[0]);
+    });
+
+    // === Event Listener Drag-Drop (Tidak Berubah) ===
+    uploaderCard.addEventListener('dragover', (e) => { e.preventDefault(); uploaderCard.classList.add('drag-over'); });
+    uploaderCard.addEventListener('dragleave', (e) => { e.preventDefault(); uploaderCard.classList.remove('drag-over'); });
+    uploaderCard.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploaderCard.classList.remove('drag-over');
+        processFile(e.dataTransfer.files[0]);
+    });
+
+    // === Event Listener Tombol Prediksi (Diperbarui) ===
+// === Event Listener Tombol Prediksi (DIPERBAIKI) ===
+predictButton.addEventListener('click', async () => {
+    if (!currentImageFile) {
+        alert("Pilih gambar terlebih dahulu!");
+        return;
+    }
+
+    // --- Tampilkan Loading SAAT tombol DIKLIK ---
+    statusDiv.innerHTML = "Mendeteksi...";
+    loadingOverlay.style.display = 'flex'; // Tampilkan overlay
+    resultsContainer.style.display = 'block';// Tampilkan kontainer (agar overlay terlihat)
+    predictButton.disabled = true;      // Nonaktifkan tombol deteksi
+    downloadButton.disabled = true;     // Nonaktifkan tombol unduh
+    downloadPdfButton.disabled = true;   // Nonaktifkan tombol unduh PDF
+    // --- Akhir bagian Loading ---
+
+    const formData = new FormData();
+    formData.append('image', currentImageFile);
+
+    try {
+        const response = await fetch('/predict', { method: 'POST', body: formData });
+        if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
+        const results = await response.json();
+
+        lastDetectionResults = results; // Simpan hasil
+        drawBoundingBoxes(results);    // Gambar kotak
+        displaySummary(results);       // Tampilkan ringkasan
+
+        // Aktifkan tombol unduh jika ada hasil
+        if (results && results.length > 0) {
+             downloadButton.disabled = false;
+             downloadPdfButton.disabled = false;
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        statusDiv.innerHTML = `<span style='color:red;'>Error: ${error.message}</span>`;
+        lastDetectionResults = null; // Reset hasil jika error
+        resultsContainer.style.display = 'none'; // Sembunyikan kontainer jika error
+    } finally {
+            loadingOverlay.style.display = 'none'; 
+            predictButton.disabled = false; 
+            // === BARIS BARU: Tampilkan tombol Hapus ===
+            if (lastDetectionResults) { // Hanya tampilkan jika ada hasil
+                clearButton.style.display = 'inline-block'; 
+            }
+            // ======================================
+        }
+});
+
+// === FUNGSI DIPERBARUI: displaySummary (Menyimpan Grade & Saran) ===
+function displaySummary(results) {
+        summaryList.innerHTML = ''; gradeDisplay.innerHTML = ''; gradeDisplay.className = 'grade-none'; adviceDisplay.innerHTML = ''; adviceDisplay.style.display = 'none';
+        lastGrade = "N/A"; lastAdvice = "Tidak ada saran.";
+        
+        if (myPieChart) { myPieChart.destroy(); myPieChart = null; }
+
+        const chartCanvas = document.getElementById('qualityChart');
+        if (!results || results.length === 0) {
+            summaryList.innerHTML = '<li class="summary-other">Tidak ada objek yang terdeteksi.</li>';
+            if(chartCanvas) chartCanvas.style.display = 'none';
+            return;
+        } else {
+            if(chartCanvas) chartCanvas.style.display = 'block';
+        }
+
+        const counts = {};
+        for (const item of results) counts[item.name] = (counts[item.name] || 0) + 1;
+
+        const totalLi = document.createElement('li');
+        totalLi.className = 'summary-other';
+        totalLi.innerHTML = `<strong>Total Objek Terdeteksi: ${results.length}</strong>`;
+        summaryList.appendChild(totalLi);
+
+        for (const [name, count] of Object.entries(counts)) {
+            const li = document.createElement('li');
+            let className = 'summary-other';
+            if (name.includes('bagus') || name.includes('baik')) className = 'summary-good';
+            else if (name.includes('sedang') || name.includes('patah')) className = 'summary-medium';
+            else if (name.includes('jelek') || name.includes('rusak') || name.includes('sampah')) className = 'summary-bad';
+            li.className = className;
+            li.innerHTML = `<strong>${name}:</strong> ${count} buah`;
+            summaryList.appendChild(li);
+        }
+
+        // --- Logika Grading & Saran ---
+        const countBagus = counts['beras-bagus'] || 0;
+        const countSedang = counts['beras-patah'] || 0;
+        const countJelek = (counts['beras-jelek'] || 0) + (counts['sampah'] || 0);
+        const totalBeras = countBagus + countSedang + countJelek;
+        let gradeText = "Tidak ada beras terdeteksi";
+        let adviceText = "Tidak ada saran.";
+
+        if (totalBeras > 0) {
+            const persenBagus = (countBagus / totalBeras) * 100;
+            if (persenBagus > 90) {
+                gradeText = 'Kualitas: A (Premium)';
+                adviceText = 'Kualitas beras Anda **sangat baik dan tergolong premium**. Butiran tampak bersih, seragam, dan minim cacat. Pertahankan mutu ini dengan cara menyimpan beras di tempat yang kering, tertutup rapat, serta jauh dari sinar matahari langsung dan kelembapan tinggi agar kualitas tetap terjaga.';
+                gradeDisplay.className = 'grade-a';
+            }
+            else if (persenBagus > 70) {
+                gradeText = 'Kualitas: B (Standar)';
+                adviceText = 'Kualitas beras tergolong **baik dan masih dalam kategori layak konsumsi**. Namun, ada sedikit butiran rusak atau kotoran kecil. Disarankan untuk melakukan **penyortiran ringan** dan memastikan wadah penyimpanan tetap bersih agar kualitas tidak menurun selama penyimpanan.';
+                gradeDisplay.className = 'grade-b';
+            }
+            else {
+                gradeText = 'Kualitas: C (Kurang Baik)';
+                adviceText = 'Kualitas beras **kurang baik dan perlu perhatian lebih**. Terlihat adanya butiran pecah, warna tidak merata, atau kotoran kecil yang dapat memengaruhi rasa dan kebersihan. Sebaiknya lakukan **pembersihan atau penyaringan ulang**, serta hindari mencampur dengan beras lama agar mutu tidak semakin turun.';
+                gradeDisplay.className = 'grade-c';
+            }
+
+            gradeDisplay.innerHTML = gradeText;
+            adviceDisplay.innerHTML = `<p><strong>Saran:</strong> ${adviceText}</p>`;
+            adviceDisplay.style.display = 'block';
+            lastGrade = gradeText;
+            lastAdvice = adviceText;
+        } else { gradeDisplay.className = 'grade-none'; adviceDisplay.style.display = 'none'; lastGrade = 'Tidak ada beras terdeteksi'; }
+        
+        // === LOGIKA MEMBUAT PIE CHART ===
+        const chartLabels = Object.keys(counts);
+        const chartDataValues = Object.values(counts);
+        const chartBackgroundColors = chartLabels.map(label => {
+            if (label.includes('bagus') || label.includes('baik')) return 'rgba(25, 135, 84, 0.8)';
+            if (label.includes('sedang') || label.includes('patah')) return 'rgba(255, 193, 7, 0.8)';
+            if (label.includes('jelek') || label.includes('rusak') || label.includes('sampah')) return 'rgba(220, 53, 69, 0.8)';
+            return 'rgba(108, 117, 125, 0.8)';
+        });
+
+        const ctxChart = chartCanvas.getContext('2d');
+        myPieChart = new Chart(ctxChart, {
+            type: 'pie',
+            data: {
+                labels: chartLabels,
+                datasets: [{ data: chartDataValues, backgroundColor: chartBackgroundColors, borderWidth: 1 }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    title: { display: true, text: 'Distribusi Kualitas Terdeteksi' }
+                }
+            }
+        });
+    }
+        // --- AKHIR LOGIKA GRADING & SARAN ---
+
+    // === Fungsi drawBoundingBoxes (Tidak Berubah) ===
+    function drawBoundingBoxes(results) {
+        // Cek jika results null atau kosong
+        if (!results) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Bersihkan canvas jika tidak ada hasil
+            return;
+        }
+
+        const displayWidth = previewImage.clientWidth;
+        // Cek jika naturalWidth = 0 (gambar belum dimuat)
+        if (previewImage.naturalWidth === 0) return; 
+        
+        const aspectRatio = previewImage.naturalHeight / previewImage.naturalWidth;
+        const displayHeight = displayWidth * aspectRatio;
+        canvas.width = displayWidth;
+        canvas.height = displayHeight;
+        document.getElementById('imageContainer').style.height = `${displayHeight}px`;
+        const scale = displayWidth / previewImage.naturalWidth;
+        ctx.lineWidth = 3;
+        ctx.font = '16px "Poppins", sans-serif';
+        
+        // Bersihkan canvas sebelum menggambar ulang
+        ctx.clearRect(0, 0, canvas.width, canvas.height); 
+
+        results.forEach(box => {
+            const x1 = box.box.x1 * scale;
+            const y1 = box.box.y1 * scale;
+            const width = (box.box.x2 - box.box.x1) * scale;
+            const height = (box.box.y2 - box.box.y1) * scale;
+            const label = `${box.name} (${(box.confidence * 100).toFixed(0)}%)`;
+            let color = '#0d6efd';
+            if (box.name.includes('bagus') || box.name.includes('baik')) color = '#198754';
+            else if (box.name.includes('rusak') || box.name.includes('jelek') || box.name.includes('sampah')) color = '#dc3545'; // Sampah = Merah
+            else if (box.name.includes('sedang') || box.name.includes('patah')) color = '#ffc107';
+            
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.rect(x1, y1, width, height);
+            ctx.stroke();
+            ctx.fillStyle = color;
+            ctx.fillRect(x1 - 1, y1 - 20, ctx.measureText(label).width + 8, 20);
+            ctx.fillStyle = 'white';
+            ctx.fillText(label, x1 + 4, y1 - 5);
+        });
+    }
+
+    // === Logika Galeri Contoh (Tidak Berubah) ===
+// === LOGIKA BARU: Galeri Contoh (DIPERBAIKI) ===
+document.querySelectorAll('.example-image').forEach(img => {
+    img.addEventListener('click', async () => {
+        const imageUrl = img.src; // URL gambar yang benar (misal: http://.../static/assets/...)
+        const fileName = imageUrl.split('/').pop(); // Mendapat nama file
+
+        statusDiv.innerHTML = "Memuat gambar contoh...";
+        predictButton.disabled = true;
+
+        try {
+            // 1. Ambil (fetch) gambar dari URL-nya
+            const response = await fetch(imageUrl);
+            if (!response.ok) throw new Error("Gagal memuat gambar dari server.");
+
+            const blob = await response.blob(); // Ubah response menjadi data biner (Blob)
+
+            // 2. Ubah Blob menjadi objek File, agar sama seperti hasil upload
+            const file = new File([blob], fileName, { type: blob.type });
+
+            // 3. Gunakan fungsi processFile() yang sudah ada untuk menampilkan preview
+            processFile(file);
+
+            // 4. (Opsional) Scroll ke area upload agar terlihat
+            document.getElementById('uploaderCard').scrollIntoView({ behavior: 'smooth' });
+
+        } catch (error) {
+            console.error('Error memuat gambar contoh:', error);
+            statusDiv.innerHTML = `<span style='color:red;'>Error: Gagal memuat gambar contoh.</span>`;
+        }
+    });
+});
+// === AKHIR LOGIKA GALERI ===
+
+    // === Logika Webcam (Tidak Berubah) ===
+// Fungsi untuk menghentikan stream kamera dan menutup modal
+function stopWebcamStream() {
+    if (currentStream) {
+        currentStream.getTracks().forEach(track => {
+            track.stop(); // Perintah untuk mematikan kamera
+        });
+    }
+    webcamModal.style.display = 'none'; // Sembunyikan jendela modal
+}
+
+// 1. Event Listener untuk tombol "Gunakan Kamera" (MEMBUKA modal)
+function isInAppBrowser() {
+    const ua = navigator.userAgent || '';
+    // indikasi umum in-app browsers: FB, IG, Line, WhatsApp, Twitter in-app, etc.
+    return /FBAN|FBAV|Instagram|Line\/|WhatsApp|Twitter for|Messenger|Cordova|FB_IAB/i.test(ua);
+}
+
+openWebcamButton.addEventListener('click', async () => {
+    console.log('UA:', navigator.userAgent);
+    console.log('mediaDevices:', navigator.mediaDevices);
+    console.log('getUserMedia type:', typeof (navigator.mediaDevices && navigator.mediaDevices.getUserMedia));
+
+    // cek in-app browser dulu
+    function isInAppBrowser() {
+        return /FBAN|FBAV|Instagram|Line\/|WhatsApp|Messenger|Twitter for|Cordova|FB_IAB/i.test(navigator.userAgent || '');
+    }
+    if (isInAppBrowser()) {
+        alert('Buka halaman ini di browser (Chrome/Firefox), bukan di aplikasi chat. Pilih "Open in browser".');
+        return;
+    }
+
+    // cek secure context kecuali localhost
+    const h = location.hostname;
+    if (location.protocol !== 'https:' && h !== 'localhost' && h !== '127.0.0.1') {
+        // Tampilkan instruksi yang lebih ramah ke user (jangan langsung memblok)
+        const help = [
+            "Akses kamera dibatasi karena halaman tidak dijalankan lewat HTTPS.",
+            "",
+            "Pilihan cepat:",
+            "• Pakai ngrok (HTTPS): jalankan di mesin development -> ngrok http 5000, lalu buka URL https://xxxxx.ngrok.io di HP.",
+            "• Buka halaman langsung di browser (Chrome/Firefox), bukan dari aplikasi chat.",
+            "• Untuk testing lokal di desktop: jalankan Chrome dengan flag --unsafely-treat-insecure-origin-as-secure (hanya untuk development).",
+            "",
+            "Jika Anda sudah paham dan ingin mencoba tetap melakukan permintaan kamera, klik OK (kemungkinan besar browser akan menolak)."
+        ].join("\\n");
+
+        if (!confirm(help)) {
+            return;
+        }
+    }
+    // cek dukungan API
+    if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+        alert('Browser Anda tampaknya tidak mendukung akses kamera. Gunakan Chrome/Firefox terbaru atau buka link di browser.');
+        return;
+    }
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+        videoElement.srcObject = stream;
+        currentStream = stream;
+        webcamModal.style.display = 'flex';
+        await videoElement.play().catch(()=>{});
+    } catch (err) {
+        console.error('getUserMedia error:', err);
+        if (err.name === 'NotAllowedError') alert('Izin kamera ditolak. Periksa permission di browser/OS.');
+        else if (err.name === 'NotFoundError') alert('Tidak ada kamera terdeteksi pada perangkat ini.');
+        else alert('Gagal mengakses kamera. Cek console untuk detail.');
+    }
+});
+
+// 2. Event Listener untuk tombol "Tutup" di dalam modal
+closeModalButton.addEventListener('click', stopWebcamStream);
+
+// 3. Event Listener untuk tombol "Ambil Foto"
+captureButton.addEventListener('click', () => {
+    // Buat sebuah canvas sementara di memori (tidak terlihat)
+    const tempCanvas = document.createElement('canvas');
+    // Atur ukurannya sama persis dengan ukuran video yang sedang berjalan
+    tempCanvas.width = videoElement.videoWidth;
+    tempCanvas.height = videoElement.videoHeight;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    // "Gambar" frame video saat ini ke canvas sementara
+    tempCtx.drawImage(videoElement, 0, 0, tempCanvas.width, tempCanvas.height);
+    
+    // Ubah gambar di canvas menjadi data biner (Blob)
+    tempCanvas.toBlob(blob => {
+        // Ubah Blob menjadi objek File, agar sama seperti hasil upload biasa
+        const file = new File([blob], "webcam-capture.jpg", { type: "image/jpeg" });
+        
+        // Gunakan fungsi processFile() yang sudah kita punya untuk menampilkan preview
+        processFile(file);
+        
+        // (Opsional) Scroll ke area upload agar hasilnya terlihat
+        document.getElementById('uploaderCard').scrollIntoView({ behavior: 'smooth' });
+
+    }, 'image/jpeg');
+    
+    // Tutup kamera dan modal setelah foto berhasil diambil
+    stopWebcamStream();
+});
+
+    // === EVENT LISTENER TOMBOL UNDUH (DIPERBARUI TOTAL) ===
+    downloadButton.addEventListener('click', () => {
+        // Periksa apakah ada hasil deteksi dan gambar sudah dimuat
+        if (!lastDetectionResults || !previewImage.src || previewImage.naturalWidth === 0) {
+            alert("Tidak ada hasil deteksi yang valid untuk diunduh, atau gambar belum dimuat.");
+            return;
+        }
+
+        // 1. Buat canvas baru di memori
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+
+        // 2. Atur ukuran canvas baru sesuai ukuran TAMPILAN gambar saat ini
+        const displayWidth = previewImage.clientWidth;
+        const aspectRatio = previewImage.naturalHeight / previewImage.naturalWidth;
+        const displayHeight = displayWidth * aspectRatio;
+        
+        tempCanvas.width = displayWidth;
+        tempCanvas.height = displayHeight;
+
+        // 3. Gambar gambar ASLI ke canvas baru
+        tempCtx.drawImage(previewImage, 0, 0, tempCanvas.width, tempCanvas.height);
+
+        // 4. Gambar ulang bounding box dan label ke canvas baru
+        const scale = tempCanvas.width / previewImage.naturalWidth; // Skala yang sama
+        tempCtx.lineWidth = 3;
+        tempCtx.font = '16px "Poppins", sans-serif';
+
+        lastDetectionResults.forEach(box => {
+            const x1 = box.box.x1 * scale;
+            const y1 = box.box.y1 * scale;
+            const width = (box.box.x2 - box.box.x1) * scale;
+            const height = (box.box.y2 - box.box.y1) * scale;
+            const label = `${box.name} (${(box.confidence * 100).toFixed(0)}%)`;
+            
+            let color = '#0d6efd'; 
+            if (box.name.includes('bagus') || box.name.includes('baik')) color = '#198754';
+            else if (box.name.includes('rusak') || box.name.includes('jelek') || box.name.includes('sampah')) color = '#dc3545'; 
+            else if (box.name.includes('sedang') || box.name.includes('patah')) color = '#ffc107';
+
+            tempCtx.strokeStyle = color;
+            tempCtx.fillStyle = color;
+            tempCtx.beginPath();
+            tempCtx.rect(x1, y1, width, height);
+            tempCtx.stroke();
+            tempCtx.fillStyle = color;
+            tempCtx.fillRect(x1 - 1, y1 - 20, tempCtx.measureText(label).width + 8, 20);
+            tempCtx.fillStyle = 'white';
+            tempCtx.fillText(label, x1 + 4, y1 - 5);
+        });
+
+        // 5. Konversi canvas BARU ke Data URL
+        const imageDataUrl = tempCanvas.toDataURL('image/png');
+
+        // 6. Buat link dan mulai unduhan
+        const link = document.createElement('a');
+        link.href = imageDataUrl;
+        link.download = 'hasil_deteksi_beras.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+    // === AKHIR EVENT LISTENER UNDUH ===
+// === EVENT LISTENER TOMBOL UNDUH PDF (DIPERBAIKI TOTAL) ===
+downloadPdfButton.addEventListener('click', async () => {
+    if (!lastDetectionResults) {
+        alert("Lakukan deteksi terlebih dahulu.");
+        return;
+    }
+
+    const originalButtonText = downloadPdfButton.innerHTML;
+    downloadPdfButton.innerHTML = "Membuat PDF...";
+    downloadPdfButton.disabled = true;
+
+    try {
+        // 1. Buat gambar hasil deteksi
+        const detectionImageCanvas = document.createElement('canvas');
+        const detCtx = detectionImageCanvas.getContext('2d');
+        const displayWidth = previewImage.clientWidth;
+        const aspectRatio = previewImage.naturalHeight / previewImage.naturalWidth;
+        const displayHeight = displayWidth * aspectRatio;
+        detectionImageCanvas.width = displayWidth;
+        detectionImageCanvas.height = displayHeight;
+        detCtx.drawImage(previewImage, 0, 0, displayWidth, displayHeight);
+        // Gambar ulang kotak (sama seperti di atas)
+        const scale = displayWidth / previewImage.naturalWidth;
+        detCtx.lineWidth = 3;
+        detCtx.font = '16px "Poppins", sans-serif';
+        lastDetectionResults.forEach(box => {
+             const x1 = box.box.x1 * scale;
+             const y1 = box.box.y1 * scale;
+             const width = (box.box.x2 - box.box.x1) * scale;
+             const height = (box.box.y2 - box.box.y1) * scale;
+             const label = `${box.name} (${(box.confidence * 100).toFixed(0)}%)`;
+             let color = '#0d6efd';
+             if (box.name.includes('bagus')) color = '#198754';
+             else if (box.name.includes('jelek') || box.name.includes('sampah')) color = '#dc3545';
+             else if (box.name.includes('patah')) color = '#ffc107';
+             detCtx.strokeStyle = color;
+             detCtx.fillStyle = color;
+             detCtx.beginPath();
+             detCtx.rect(x1, y1, width, height);
+             detCtx.stroke();
+             detCtx.fillStyle = color;
+             detCtx.fillRect(x1 - 1, y1 - 20, detCtx.measureText(label).width + 8, 20);
+             detCtx.fillStyle = 'white';
+             detCtx.fillText(label, x1 + 4, y1 - 5);
+        });
+        const imageDataUrl = detectionImageCanvas.toDataURL('image/png');
+
+        // 2. Dapatkan gambar chart
+        let chartDataUrl = null;
+        if (myPieChart) {
+             // Workaround untuk bug Chart.js: nonaktifkan animasi sementara
+             myPieChart.options.animation = false;
+             myPieChart.update();
+             chartDataUrl = myPieChart.toBase64Image();
+             myPieChart.options.animation = true; // Aktifkan lagi
+             myPieChart.update();
+        }
+
+        // 3. Siapkan data untuk backend
+        const counts = {};
+        for (const item of lastDetectionResults) counts[item.name] = (counts[item.name] || 0) + 1;
+        const reportData = {
+            grade: lastGrade,
+            advice: lastAdvice,
+            counts: counts,
+            total: lastDetectionResults.length,
+            image_data: imageDataUrl,
+            chart_data: chartDataUrl
+        };
+
+        // 4. Kirim ke backend & proses PDF (sama seperti sebelumnya)
+        const response = await fetch('/download_report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reportData) });
+        if (!response.ok) throw new Error('Gagal membuat laporan PDF di server.');
+        const blob = await response.blob();
+        if (blob.type !== "application/pdf") throw new Error("Server tidak mengirimkan PDF.");
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'laporan_deteksi_beras.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+    } catch (error) {
+        console.error("Error saat mengunduh PDF:", error);
+        alert(`Gagal mengunduh laporan PDF. ${error.message}`);
+    } finally {
+        downloadPdfButton.innerHTML = "Unduh Laporan PDF";
+        downloadPdfButton.disabled = false;
+    }
+});
+// === LOGIKA BARU: Tombol Hapus Hasil ===
+clearButton.addEventListener('click', () => {
+    // Kosongkan preview gambar
+    previewImage.src = "";
+    // Hapus nama file
+    fileNameSpan.textContent = "Belum ada file dipilih";
+    // Kosongkan file yang tersimpan
+    currentImageFile = null;
+    imageInput.value = null; // Reset input file
+    
+    // Bersihkan canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Hapus tinggi kontainer gambar (penting!)
+    document.getElementById('imageContainer').style.height = 'auto'; 
+    
+    // Sembunyikan kontainer hasil
+    resultsContainer.style.display = 'none';
+    
+    // Reset ringkasan, grade, dan saran
+    summaryList.innerHTML = '';
+    gradeDisplay.innerHTML = '';
+    gradeDisplay.className = 'grade-none';
+    adviceDisplay.innerHTML = '';
+    adviceDisplay.style.display = 'none';
+    
+    // Reset status
+    statusDiv.innerHTML = "";
+    
+    // Nonaktifkan tombol-tombol
+    predictButton.disabled = true;
+    downloadButton.disabled = true;
+    downloadPdfButton.disabled = true;
+    clearButton.style.display = 'none'; // Sembunyikan tombol hapus itu sendiri
+    
+    // Reset hasil deteksi terakhir
+    lastDetectionResults = null;
+    lastGrade = "N/A";
+    lastAdvice = "Tidak ada saran.";
+    if (myPieChart) myPieChart.destroy(); // Hancurkan chart lama
+    document.getElementById('qualityChart').style.display = 'none'; // Sembunyikan canvas
+});
+// === AKHIR LOGIKA HAPUS ===
+</script>
+
+</body>
+</html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tentang Proyek - Deteksi Kualitas Beras</title>
+<style>
+    /* === CSS ESENSIAL (Navbar, Footer, Variabel, Body) === */
+    :root {
+        --bg-white: #ffffff;
+        --text-dark: #333333;
+        --text-muted: #666666;
+        --accent-green: #2a9d8f;
+        --accent-blue: #007bff;
+        --border-color: #eeeeee;
+        --font-serif: Georgia, 'Times New Roman', Times, serif;
+        --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+        margin: 0;
+        font-family: var(--font-sans);
+        background-color: var(--bg-white);
+        color: var(--text-dark);
+        line-height: 1.7;
+        font-size: 1rem;
+        overflow-x: hidden;
+    }
+
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 60px;
+  background: #ffffff;
+  border-bottom: 2px solid #e5f5e0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #2e7d32;
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 0.5px;
+}
+
+.navbar-brand .logo {
+  height: 60px;        
+  width: auto;         
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover .logo {
+  transform: rotate(-5deg) scale(1.05);
+}
+
+/* === LINK MENU === */
+.navbar-links {
+  display: flex;
+  gap: 22px;
+}
+
+.navbar-link {
+  text-decoration: none;
+  color: #2e7d32;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.25s ease-in-out;
+}
+
+.navbar-link:hover {
+  background-color: #e8f5e9;
+  color: #1b5e20;
+}
+
+/* === EFEK SCROLL === */
+.navbar.scrolled {
+  background-color: #f9fff9;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+/* === RESPONSIF === */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 20px;
+  }
+
+  .navbar-brand .logo {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+    .footer { width: 100%; padding: 30px 0; text-align: center; background-color: var(--bg-white); color: var(--text-muted); border-top: 1px solid var(--border-color); margin-top: 80px; }
+    .footer p { margin: 0; line-height: 1.6; }
+    .footer strong { color: var(--accent-green); }
+    .container { max-width: 750px; margin: 60px auto; padding: 0 20px; }
+    /* === AKHIR CSS ESENSIAL === */
+
+
+    .about-header {
+        text-align: center;
+        margin-bottom: 60px;
+        opacity: 0;
+        animation: fadeIn 1s 0.2s ease-out forwards;
+    }
+    .about-header h1 {
+        font-size: 2.6rem;
+        font-weight: 600;
+        color: var(--accent-green);
+        margin-bottom: 10px;
+    }
+    .about-header p {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Section Konten (umum) */
+    .about-section {
+        margin-bottom: 50px;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp 0.8s ease-out forwards;
+    }
+    .about-section h2 {
+        font-size: 2.6rem;
+        font-weight: 600;
+        color: var(--accent-green);
+        margin-bottom: 20px;
+        text-align: center; /* Pusatkan judul section */
+    }
+
+    /* Section Pengembang */
+    .developer-profiles {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        flex-wrap: wrap;
+    }
+    .developer-profile {
+        text-align: center;
+        max-width: 160px;
+        transition: transform 0.3s ease;
+    }
+    .developer-profile:hover { transform: translateY(-5px); }
+    .developer-photo {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 15px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+    .developer-name {
+        font-size: 1.15rem;
+        font-weight: 500;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    /* Section Teks (Latar Belakang, dll) */
+    .about-text-content p, .about-text-content li {
+        color: var(--text-muted);
+        font-size: 1.05rem;
+        margin-bottom: 15px;
+    }
+    .about-text-content ul { list-style: none; padding-left: 0; }
+    .about-text-content li { position: relative; padding-left: 25px; }
+    .about-text-content li::before { content: '—'; color: var(--accent-green); position: absolute; left: 0; font-weight: bold; }
+    .tech-list strong { color: var(--text-dark); font-weight: 600; }
+
+    /* Animasi */
+    @keyframes fadeIn { to { opacity: 1; } }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 768px) {
+        .container { padding: 0 20px !important; margin: 40px auto; }
+        .about-header h1 { font-size: 2rem; }
+        .developer-photo { width: 120px; height: 120px; }
+    }
+</style>
+</head>
+<body>
+
+            <nav class="navbar">
+            <div class="navbar-brand">
+                <img src="{{ url_for('static', filename='assets/image_logo.png') }}" alt="RiceVision Logo" class="logo">
+                <span>RiceVision</span>
+            </div>
+            <div class="navbar-links">
+                <a href="/" class="navbar-link">Beranda</a>
+                <a href="{{ url_for('about') }}" class="navbar-link">Tentang Proyek</a>
+            </div>
+            </nav>
+
+    <main class="container">
+                <!-- Section Pengembang (DI ATAS) -->
+        <section class="about-section" style="animation-delay: 0.4s;">
+            <h2>Pengembang</h2>
+            <div class="developer-profiles">
+                <div class="developer-profile">
+                    <img src="{{ url_for('static', filename='assets/1000148334 (1).jpg') }}" alt="Foto Rizal Mahardika Putra" class="developer-photo">
+                    <p class="developer-name">Rizal Mahardika Putra</p>
+                </div>
+                <div class="developer-profile">
+                    <img src="{{ url_for('static', filename='assets/WhatsApp Image 2025-10-21 at 15.32.07.jpeg') }}" alt="Foto Bismi Padia" class="developer-photo">
+                    <p class="developer-name">Bismi Padia</p>
+                </div>
+            </div>
+        </section>
+        
+        <div class="about-header">
+            <h1>Tentang Proyek</h1>
+            <p>
+                <strong>RiceVision</strong> adalah aplikasi web interaktif berbasis kecerdasan buatan 
+                yang dirancang untuk membantu menganalisis dan mengidentifikasi kualitas beras secara cepat dan akurat. 
+                Melalui pemanfaatan teknologi <em>deep learning</em> dan model deteksi objek <strong>YOLOv8</strong>, 
+                sistem ini mampu mengenali perbedaan antara beras berkualitas baik, patah, hingga tidak layak konsumsi.
+            </p>
+            <p>
+                Proyek ini dikembangkan sebagai bagian dari upaya inovasi di bidang <strong>pertanian digital</strong>, 
+                dengan tujuan mendukung proses distribusi dan pengawasan kualitas pangan yang lebih efisien, 
+                transparan, dan modern. Dengan tampilan antarmuka yang sederhana dan hasil analisis yang informatif, 
+                RiceVision diharapkan dapat menjadi solusi nyata bagi petani, pelaku industri beras, hingga konsumen umum.
+            </p>
+        </div>
+
+
+        <!-- Section Konten Teks (DI BAWAH) -->
+        <section class="about-section about-text-content" style="animation-delay: 0.6s;">
+            <h2>Latar Belakang</h2>
+            <p>
+                Proyek ini dikembangkan sebagai bagian dari <strong>Capstone Project Dicoding Bootcamp</strong> dengan tujuan 
+                menghadirkan solusi berbasis <em>Artificial Intelligence</em> di sektor pertanian. 
+                Indonesia sebagai salah satu negara agraris memiliki ketergantungan besar terhadap kualitas hasil panen, 
+                khususnya beras sebagai bahan pangan utama. Namun, proses penilaian kualitas beras sering kali masih dilakukan 
+                secara manual dan subjektif, yang dapat menyebabkan inkonsistensi dan ketidaktepatan hasil.
+            </p>
+            <p>
+                Melalui pemanfaatan teknologi <em>deep learning</em> dengan model <strong>YOLOv8</strong>, 
+                proyek ini berfokus pada pengembangan sistem <em>object detection</em> yang mampu 
+                mengidentifikasi dan mengklasifikasikan butiran beras berdasarkan tingkat kualitasnya 
+                secara otomatis. Diharapkan, pendekatan ini tidak hanya meningkatkan efisiensi proses penilaian, 
+                tetapi juga menjadi langkah awal menuju transformasi digital dalam sistem pengawasan pangan di Indonesia.
+            </p>
+
+            <h2>Tujuan</h2>
+            <ul>
+                <li>
+                    <strong>Mengembangkan sistem pendeteksi kualitas beras</strong> berbasis <em>Artificial Intelligence</em> 
+                    yang mampu mengidentifikasi kategori beras seperti bagus, patah, atau jelek secara otomatis.
+                </li>
+                <li>
+                    <strong>Meningkatkan efisiensi proses penilaian kualitas beras</strong> agar dapat dilakukan dengan lebih cepat, 
+                    objektif, dan mengurangi ketergantungan pada penilaian manual manusia.
+                </li>
+                <li>
+                    <strong>Menyediakan antarmuka berbasis web</strong> yang mudah digunakan, sehingga pengguna dapat mengunggah gambar 
+                    dan langsung mendapatkan hasil analisis tanpa perlu instalasi tambahan.
+                </li>
+                <li>
+                    <strong>Mendorong pemanfaatan teknologi AI di sektor pertanian</strong> khususnya dalam bidang ketahanan pangan, 
+                    dengan menjadikan proyek ini contoh implementasi nyata AI untuk kebutuhan industri lokal.
+                </li>
+            </ul>
+
+            <h2>Teknologi</h2>
+            <p>
+                Proyek <strong>RiceVision</strong> dibangun dengan kombinasi teknologi modern yang dirancang untuk memastikan
+                performa tinggi, kemudahan pengembangan, dan pengalaman pengguna yang responsif. 
+                Berikut adalah komponen utama yang digunakan:
+            </p>
+
+            <ul class="tech-list">
+                <li>
+                    <strong>Backend:</strong> 
+                    Dikembangkan menggunakan <em>Python</em> dan <em>Flask</em> sebagai framework utama.
+                    Flask digunakan untuk menangani routing, integrasi model AI, serta komunikasi antara antarmuka pengguna dan server.
+                </li>
+                
+                <li>
+                    <strong>Model AI:</strong> 
+                    Implementasi dilakukan dengan <em>YOLOv8</em> yang dikembangkan oleh <em>Ultralytics</em>, 
+                    memanfaatkan kekuatan <em>PyTorch</em> dalam pelatihan dan inferensi model deteksi objek.
+                    Model ini mampu mengenali dan mengklasifikasikan kualitas beras secara real-time.
+                </li>
+
+                <li>
+                    <strong>Frontend:</strong> 
+                    Menggunakan kombinasi <em>HTML</em>, <em>CSS</em>, dan <em>JavaScript</em> untuk membangun tampilan web
+                    yang interaktif dan adaptif di berbagai ukuran layar, baik desktop maupun perangkat mobile.
+                </li>
+
+                <li>
+                    <strong>Library Pendukung:</strong> 
+                    <em>Pillow</em> digunakan untuk memproses dan mengubah gambar sebelum atau sesudah deteksi, 
+                    sedangkan <em>FPDF</em> memfasilitasi pembuatan laporan hasil deteksi dalam format PDF.  
+                    Selain itu, modul seperti <code>io</code>, <code>base64</code>, dan <code>datetime</code> 
+                    digunakan untuk pengelolaan file, encoding gambar, dan penandaan waktu hasil deteksi.
+                </li>
+            </ul>
+
+            <p>
+                Kombinasi teknologi ini menjadikan RiceVision tidak hanya berfungsi sebagai aplikasi deteksi kualitas beras,
+                tetapi juga sebagai platform edukatif dan demonstratif bagi implementasi nyata <em>Artificial Intelligence</em> 
+                di bidang pertanian digital.
+            </p>
+
+            <h2>Model AI</h2>
+            <p>
+                Model kecerdasan buatan yang digunakan dalam proyek ini dikembangkan dengan algoritma 
+                <strong>YOLOv8 (You Only Look Once versi 8)</strong>, salah satu arsitektur 
+                <em>deep learning</em> terkini untuk deteksi objek secara real-time. 
+                Model ini dilatih menggunakan kumpulan dataset beras yang telah dianotasi secara manual 
+                untuk mengklasifikasikan kualitas beras menjadi dua kategori utama: 
+                <strong>beras bagus</strong>, dan <strong>beras jelek</strong>.
+            </p>
+
+            <p>
+                Proses pelatihan dilakukan melalui serangkaian tahapan mulai dari pengumpulan dan 
+                pembersihan data, augmentasi gambar, hingga evaluasi performa model menggunakan metrik 
+                seperti <em>precision</em>, <em>recall</em>, dan <em>mAP</em>. 
+                Hasil akhir menunjukkan bahwa model mampu mendeteksi kualitas beras dengan tingkat akurasi 
+                yang memadai untuk kebutuhan aplikasi lapangan.
+            </p>
+    </main>
+
+    <footer class="footer">
+        <p>
+            Dibuat oleh <strong>Rizal Mahardika Putra & Bismi Padia</strong>
+            <br>
+            Capstone Project - Dicoding Bootcamp
+        </p>
+    </footer>
+<script>
+
+window.addEventListener("scroll", function() {
+    const navbar = document.querySelector(".navbar");
+    if (window.scrollY > 30) {
+        navbar.classList.add("scrolled");
+    } else {
+        navbar.classList.remove("scrolled");
+    }
+    });
+    
+</script>
+</body>
+</html>
